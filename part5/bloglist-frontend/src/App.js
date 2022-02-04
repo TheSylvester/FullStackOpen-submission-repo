@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Blog from "./components/Blog";
 import AlertBox from "./components/AlertBox";
-// import LoginForm from "./components/LoginForm";
+import Toggleable from "./components/Toggleable";
+import CreateBlogForm from "./components/CreateBlogForm";
 import blogService from "./services/blogs";
 import loginService from "./services/login";
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
-
-  const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
-  const [url, setUrl] = useState("");
 
   const [alertMessage, setAlertMessage] = useState("");
   const [alertStatus, setAlertStatus] = useState("");
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const blogFormRef = useRef();
 
   useEffect(() => {
     const localStorageUser = JSON.parse(
@@ -66,26 +66,23 @@ const App = () => {
     event.preventDefault();
 
     try {
-      const user = await loginService.login({
+      const loggedInUser = await loginService.login({
         username,
         password
       });
 
       // save user to local storage
-      window.localStorage.setItem("loggedBloglistUser", JSON.stringify(user));
-      blogService.setToken(user.token);
-      // later we need to set the token somewhere in blogService for ease of use
-
-      setUser(user);
+      window.localStorage.setItem(
+        "loggedBloglistUser",
+        JSON.stringify(loggedInUser)
+      );
+      blogService.setToken(loggedInUser.token);
+      setUser(loggedInUser);
       setUsername("");
       setPassword("");
 
       displayAlert("Login Successful!", "success");
     } catch (exception) {
-      // setErrorMessage('Wrong credentials')
-      // setTimeout(() => {
-      //   setErrorMessage(null)
-      // }, 5000)
       displayAlert("Invalid Username or Password", "fail");
     }
   };
@@ -110,19 +107,14 @@ const App = () => {
     );
   };
 
-  const handleCreateBlog = async (event) => {
-    event.preventDefault();
-
+  const handleCreateBlog = async (title, author, url) => {
     try {
+      blogFormRef.current.toggleVisible();
       const response = await blogService.create({
         title,
         author,
         url
       });
-
-      setTitle("");
-      setUrl("");
-      setAuthor("");
 
       const updatedBlogsList = blogs.concat(response);
       setBlogs(updatedBlogsList);
@@ -135,61 +127,35 @@ const App = () => {
     }
   };
 
-  const CreateBlogForm = ({ author, title, url }) => {
-    return (
-      <div>
-        <h2>create new</h2>
-        <form onSubmit={handleCreateBlog}>
-          <div>
-            title:{" "}
-            <input
-              type="text"
-              value={title}
-              name="title"
-              onChange={({ target }) => setTitle(target.value)}
-            />
-          </div>
-          <div>
-            author:
-            <input
-              type="text"
-              value={author}
-              name="author"
-              onChange={({ target }) => setAuthor(target.value)}
-            />
-          </div>
-          <div>
-            url:
-            <input
-              type="text"
-              value={url}
-              name="url"
-              onChange={({ target }) => setUrl(target.value)}
-            />
-          </div>
-          <button type="submit">create</button>
-        </form>
-      </div>
-    );
-  };
-
   const BlogSection = () => {
     return (
       <div>
         <h2>blogs</h2>
-        {blogs.map((blog) => (
-          <Blog key={blog.id} blog={blog} />
-        ))}
+        {blogs
+          .sort((a, b) => b.likes - a.likes)
+          .map((blog) => (
+            <Blog key={blog.id} blog={blog} />
+          ))}
       </div>
+    );
+  };
+
+  const toggleableCreateBlogForm = () => {
+    return (
+      <Toggleable buttonLabel="create new blog" ref={blogFormRef}>
+        <CreateBlogForm createBlog={handleCreateBlog} />
+      </Toggleable>
     );
   };
 
   return (
     <div>
       <AlertBox message={alertMessage} status={alertStatus} />
+
       {user === null && LoginForm()}
+
       {user !== null && LogoutComponent({ setUser, user })}
-      {user !== null && CreateBlogForm({ title, author, url })}
+      {user !== null && toggleableCreateBlogForm()}
       {user !== null && BlogSection()}
     </div>
   );
