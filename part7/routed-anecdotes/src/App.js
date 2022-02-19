@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useParams,
+  useNavigate,
+  useMatch
+} from "react-router-dom";
 
 const Menu = () => {
   const padding = {
@@ -25,7 +33,9 @@ const AnecdoteList = ({ anecdotes }) => (
     <h2>Anecdotes</h2>
     <ul>
       {anecdotes.map((anecdote) => (
-        <li key={anecdote.id}>{anecdote.content}</li>
+        <li key={anecdote.id}>
+          <Link to={`/anecdotes/${anecdote.id}`}>{anecdote.content}</Link>
+        </li>
       ))}
     </ul>
   </div>
@@ -53,21 +63,35 @@ const About = () => (
   </div>
 );
 
-const Footer = () => (
-  <div>
-    Anecdote app for <a href="https://fullstackopen.com/">Full Stack Open</a>.
-    See{" "}
-    <a href="https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js">
-      https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js
-    </a>{" "}
-    for the source code.
-  </div>
-);
+const Footer = () => {
+  const footerStyle = {
+    position: "fixed",
+    margin: "0",
+    padding: "10px",
+    width: "100%",
+    boxShadow: "0px -2px 5px #CCCCCC",
+    bottom: "0",
+    left: "0",
+    right: "0"
+  };
+  return (
+    <div style={footerStyle}>
+      Anecdote app for <a href="https://fullstackopen.com/">Full Stack Open</a>.
+      See{" "}
+      <a href="https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js">
+        https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js
+      </a>{" "}
+      for the source code.
+    </div>
+  );
+};
 
 const CreateNew = (props) => {
   const [content, setContent] = useState("");
   const [author, setAuthor] = useState("");
   const [info, setInfo] = useState("");
+
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -77,6 +101,8 @@ const CreateNew = (props) => {
       info,
       votes: 0
     });
+
+    navigate("/");
   };
 
   return (
@@ -128,14 +154,28 @@ const App = () => {
       info: "http://wiki.c2.com/?PrematureOptimization",
       votes: 0,
       id: 2
+    },
+    {
+      content:
+        "If GM had kept up with the technology like the computer industry has, we would all be driving $25.00 cars that got 1,000 miles to the gallon.",
+      author: "Don't Know",
+      info: "https://www.atimetolaugh.org/MSandGM.html",
+      votes: 0,
+      id: 4909
     }
   ]);
 
   const [notification, setNotification] = useState("");
 
+  const fireNotify = (message) => {
+    setNotification(message);
+    setTimeout(() => setNotification(""), 3000);
+  };
+
   const addNew = (anecdote) => {
-    anecdote.id = (Math.random() * 10000).toFixed(0);
+    anecdote.id = Number((Math.random() * 10000).toFixed(0));
     setAnecdotes(anecdotes.concat(anecdote));
+    fireNotify(`a new anecdote ${anecdote.content} created!`);
   };
 
   const anecdoteById = (id) => anecdotes.find((a) => a.id === id);
@@ -151,19 +191,56 @@ const App = () => {
     setAnecdotes(anecdotes.map((a) => (a.id === id ? voted : a)));
   };
 
-  return (
-    <Router>
+  const match = useMatch("/anecdotes/:id");
+  const anecdote = match
+    ? anecdotes.find((x) => x.id === Number(match.params.id))
+    : null;
+  // console.log(anecdotes, match);
+
+  const Anecdote = ({ anecdote }) => {
+    if (!anecdote) {
+      return <div>we gone fucked up</div>;
+    }
+
+    return (
       <div>
-        <h1>Software anecdotes</h1>
-        <Menu />
-        <Routes>
-          <Route path="/" element={<AnecdoteList anecdotes={anecdotes} />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/create" element={<CreateNew addNew={addNew} />} />
-        </Routes>
-        <Footer />
+        <h2>
+          {anecdote.content} by {anecdote.author}
+        </h2>
+        <div>has {anecdote.votes} votes</div>
+        <div>
+          for more info see <a href={anecdote.info}>{anecdote.info}</a>
+        </div>
       </div>
-    </Router>
+    );
+  };
+  // console.log("match.params.id: ", match ? match.params.id : null);
+  // console.log(anecdote);
+
+  const Notification = () => {
+    const displayStyle = {
+      border: "1px solid red",
+      display: notification ? "block" : "none"
+    };
+    return <div style={displayStyle}>{notification}</div>;
+  };
+
+  return (
+    <div>
+      <h1>Software anecdotes</h1>
+      <Menu />
+      <Notification />
+      <Routes>
+        <Route
+          path="/anecdotes/:id"
+          element={<Anecdote anecdote={anecdote} />}
+        />
+        <Route path="/about" element={<About />} />
+        <Route path="/create" element={<CreateNew addNew={addNew} />} />
+        <Route path="/" element={<AnecdoteList anecdotes={anecdotes} />} />
+      </Routes>
+      <Footer />
+    </div>
   );
 };
 
