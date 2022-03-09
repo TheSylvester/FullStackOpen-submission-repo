@@ -11,9 +11,15 @@ const blogsSlice = createSlice({
     },
     setBlogs(state, action) {
       return action.payload;
+    },
+    updateBlog(state, action) {
+      const blogToUpdate = action.payload;
+      return state.map((blog) =>
+        blog.id === blogToUpdate.id ? blogToUpdate : blog
+      );
     }
   }
 });
 
-export const { appendBlog, setBlogs } = blogsSlice.actions;
+export const { appendBlog, setBlogs, updateBlog } = blogsSlice.actions;
 export default blogsSlice.reducer;

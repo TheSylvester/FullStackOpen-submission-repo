@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import blogService from "../services/blogs";
 
 const Blog = ({ blog }) => {
@@ -58,7 +59,9 @@ const Blog = ({ blog }) => {
 
   return (
     <div data-cy={blog.title} style={blogStyle}>
-      {blog.title} {blog.author}{" "}
+      <Link to={`/blogs/${blog.id}`}>
+        {blog.title} {blog.author}
+      </Link>{" "}
       <button onClick={handleShowHide}>{label}</button>
       {expanded && ShowDetails()}
     </div>
