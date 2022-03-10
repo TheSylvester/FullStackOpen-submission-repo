@@ -33,6 +33,17 @@ const create = async (newObject) => {
   return response.data;
 };
 
-const blogService = { setToken, getAll, create, update, remove };
+const addComment = async ({ blogid, commentObject }) => {
+  const response = await axios.post(
+    `${baseUrl}/${blogid}/comments/`,
+    commentObject,
+    {
+      headers: { Authorization: token }
+    }
+  );
+  return response.data;
+};
+
+const blogService = { setToken, getAll, create, update, remove, addComment };
 
 export default blogService;

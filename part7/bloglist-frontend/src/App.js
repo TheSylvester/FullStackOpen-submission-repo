@@ -204,13 +204,31 @@ const App = () => {
       if (response) dispatch(updateBlog(blogToUpdate));
     };
 
+    const handleSubmitComment = async (event) => {
+      event.preventDefault();
+
+      const comment = event.target.comment.value;
+
+      const response = await blogService.addComment({
+        blogid: id,
+        commentObject: { comment }
+      });
+
+      const reduxBlog = { ...blog, comments: [...blog.comments, comment] };
+
+      if (response) dispatch(updateBlog(reduxBlog));
+      //console.log(response);
+    };
+
     return (
       <div>
         <h2>
           {blog.title} {blog.author}
         </h2>
         <div>
-          <a href={blog.url}>{blog.url}</a>
+          <a href={blog.url} rel="noreferrer" target="_blank">
+            {blog.url}
+          </a>
         </div>
         <div>
           <strong>
@@ -225,6 +243,16 @@ const App = () => {
         <div>
           <strong>added by {blog.user.name}</strong>
         </div>
+        <h3>comments:</h3>
+        <form onSubmit={handleSubmitComment}>
+          <input name="comment" type="text" />
+          <button type="submit">add comment</button>
+        </form>
+        <ul>
+          {blog.comments
+            ? blog.comments.map((comment) => <li key={comment}>{comment}</li>)
+            : null}
+        </ul>
       </div>
     );
   };
