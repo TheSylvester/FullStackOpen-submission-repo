@@ -12,6 +12,33 @@ import { setBlogs, updateBlog } from "./reducers/blogsReducer";
 import { setUser } from "./reducers/userReducer";
 import { setUsers } from "./reducers/usersReducer";
 import { Link, useMatch, Routes, Route } from "react-router-dom";
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  createTheme,
+  ThemeProvider,
+  AppBar,
+  Toolbar,
+  Box,
+  TextField,
+  Typography,
+  Button,
+  CssBaseline,
+  Container,
+  IconButton,
+  Grid
+} from "@material-ui/core";
+import { ThumbUp, ChatBubble } from "@material-ui/icons";
+import NoteIcon from "@material-ui/icons/Note";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -38,22 +65,49 @@ const App = () => {
     blogService.getAll().then((blogs) => dispatch(setBlogs(blogs)));
   }, []);
 
+  const theme = createTheme();
+
   const LoginForm = () => {
     return (
-      <div>
-        <h2>log in to application</h2>
-        <form onSubmit={handleLogin}>
-          <div>
-            username:
-            <input type="text" name="username" />
-          </div>
-          <div>
-            password:
-            <input type="password" name="password" />
-          </div>
-          <button type="submit">login</button>
-        </form>
-      </div>
+      <Container component="div" maxWidth="xs">
+        <CssBaseline />
+        <Box
+          sx={{
+            marginTop: 100,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center"
+          }}
+        >
+          <Typography component="h1" variant="h5">
+            log in to application
+          </Typography>
+          <Box component="form" onSubmit={handleLogin}>
+            <TextField
+              label="Username: "
+              required
+              fullWidth
+              margin="normal"
+              type="text"
+              name="username"
+              autoFocus
+            />
+            <TextField
+              margin="normal"
+              fullWidth
+              required
+              name="password"
+              type="password"
+              label="Password"
+              id="password"
+              autoComplete="current-password"
+            />
+            <Button type="submit" fullWidth variant="contained" color="primary">
+              login
+            </Button>
+          </Box>
+        </Box>
+      </Container>
     );
   };
 
@@ -101,7 +155,16 @@ const App = () => {
 
     return (
       <span>
-        {user.name} logged in <button onClick={handleLogout}>logout</button>
+        <CssBaseline />
+        {user.name} logged in{" "}
+        <Button
+          variant="outlined"
+          size="small"
+          color="white"
+          onClick={handleLogout}
+        >
+          logout
+        </Button>
       </span>
     );
   };
@@ -128,15 +191,29 @@ const App = () => {
 
   const BlogSection = () => {
     return (
-      <div>
-        <h2>blog app</h2>
-        <ToggleableCreateBlogForm />
-        {blogs
-          .sort((a, b) => b.likes - a.likes)
-          .map((blog) => (
-            <Blog key={blog.id} blog={blog} />
-          ))}
-      </div>
+      <Box
+        style={{
+          backgroundColor: "white",
+          padding: 20
+        }}
+      >
+        <Typography color="primary" variant="h6">
+          Blogs
+        </Typography>
+
+        <Box style={{ padding: 15 }}>
+          <Box style={{ paddingBottom: 15 }}>
+            <ToggleableCreateBlogForm />
+          </Box>
+          <List>
+            {blogs
+              .sort((a, b) => b.likes - a.likes)
+              .map((blog) => (
+                <Blog key={blog.id} blog={blog} />
+              ))}
+          </List>
+        </Box>
+      </Box>
     );
   };
 
@@ -168,29 +245,43 @@ const App = () => {
     if (!users) return null;
 
     const usersTable = users.map((user) => (
-      <tr key={user.name}>
-        <td>
-          <Link to={`/users/${user.id}`}>{user.name}</Link>
-        </td>
-        <td>{user.blogs.length}</td>
-      </tr>
+      <TableRow key={user.name}>
+        <TableCell>
+          <Button
+            component={Link}
+            size="small"
+            to={`/users/${user.id}`}
+            style={{ textTransform: "none" }}
+          >
+            {user.name}
+          </Button>
+        </TableCell>
+        <TableCell align="center">{user.blogs.length}</TableCell>
+      </TableRow>
     ));
 
     return (
-      <div>
-        <h2>Users</h2>
-        <table>
-          <tbody>
-            <tr>
-              <td></td>
-              <td>
-                <strong>blogs created</strong>
-              </td>
-            </tr>
-            {usersTable}
-          </tbody>
-        </table>
-      </div>
+      <Box
+        style={{
+          backgroundColor: "white",
+          padding: 20
+        }}
+      >
+        <Typography gutterBottom variant="h5" component="h2" color="primary">
+          Users
+        </Typography>
+        <TableContainer style={{ width: "fit-content" }} component={Paper}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell></TableCell>
+                <TableCell>blogs created</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>{usersTable}</TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
     );
   };
 
@@ -220,57 +311,128 @@ const App = () => {
       //console.log(response);
     };
 
+    const commentsList = () =>
+      blog.comments.map((comment) => {
+        return (
+          <ListItem key={comment}>
+            <ListItemIcon>
+              <ChatBubble fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>{comment}</ListItemText>
+          </ListItem>
+        );
+      });
+
     return (
-      <div>
-        <h2>
-          {blog.title} {blog.author}
-        </h2>
-        <div>
-          <a href={blog.url} rel="noreferrer" target="_blank">
+      <Box
+        style={{
+          backgroundColor: "white",
+          padding: 20
+        }}
+      >
+        <Box display="inline-block">
+          <Typography gutterBottom variant="h5" component="h2">
+            {blog.title} {blog.author}
+          </Typography>
+          <Typography variant="body2" color="textSecondary" component="p">
+            added by {blog.user.name}
+          </Typography>
+          <Button
+            color="primary"
+            component="a"
+            href={blog.url}
+            rel="noreferrer"
+            target="_blank"
+            style={{ marginTop: 10, marginBottom: 10 }}
+          >
             {blog.url}
-          </a>
-        </div>
-        <div>
-          <strong>
-            {blog.likes} likes{" "}
-            <button
-              onClick={() => handleLike({ ...blog, likes: blog.likes + 1 })}
-            >
-              Like
-            </button>
-          </strong>
-        </div>
-        <div>
-          <strong>added by {blog.user.name}</strong>
-        </div>
-        <h3>comments:</h3>
-        <form onSubmit={handleSubmitComment}>
-          <input name="comment" type="text" />
-          <button type="submit">add comment</button>
-        </form>
-        <ul>
-          {blog.comments
-            ? blog.comments.map((comment) => <li key={comment}>{comment}</li>)
-            : null}
-        </ul>
-      </div>
+          </Button>
+          <Grid container justifyContent="flex-end" alignItems="center">
+            <Grid item>
+              <Typography
+                variant="h6"
+                color="textSecondary"
+                component="span"
+                style={{ marginRight: 15 }}
+              >
+                {blog.likes} likes{" "}
+              </Typography>
+            </Grid>
+            <Grid item>
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => handleLike({ ...blog, likes: blog.likes + 1 })}
+              >
+                <ThumbUp />
+              </IconButton>
+            </Grid>
+          </Grid>
+          <Box style={{ marginTop: 30 }}>
+            <Typography variant="subtitle1">comments:</Typography>
+            <Box component="form" onSubmit={handleSubmitComment}>
+              <TextField
+                variant="outlined"
+                name="comment"
+                type="text"
+                fullWidth
+              />
+              <Grid container justifyContent="flex-end">
+                <Grid item>
+                  <Button size="small" type="submit">
+                    add comment
+                  </Button>
+                </Grid>
+              </Grid>
+            </Box>
+            <List dense>{!blog.comments ? null : commentsList()}</List>
+          </Box>
+        </Box>
+      </Box>
     );
   };
 
   const NavBar = () => {
-    const cssStyle = {
-      paddingRight: 10
-    };
     return (
-      <div>
-        <Link to="/" style={cssStyle}>
-          blogs
-        </Link>
-        <Link to="/users" style={cssStyle}>
-          users
-        </Link>
-        <LogoutComponent style={cssStyle} />
-      </div>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AppBar position="relative">
+          <Toolbar>
+            <Typography
+              component="div"
+              variant="h6"
+              color="inherit"
+              style={{ flexGrow: 0, marginRight: 50 }}
+              noWrap
+            >
+              Blog List App
+            </Typography>
+            <Box
+              style={{
+                flexGrow: 1,
+                display: "flex",
+                alignItems: "right"
+              }}
+            >
+              <Button
+                component={Link}
+                to={"/"}
+                style={{ color: "white", display: "block" }}
+              >
+                blogs
+              </Button>
+              <Button
+                component={Link}
+                to={"/users"}
+                style={{ color: "white", display: "block" }}
+              >
+                users
+              </Button>
+            </Box>
+            <LogoutComponent style={{ flexGrow: 0 }} />
+          </Toolbar>
+        </AppBar>
+      </ThemeProvider>
     );
   };
 
@@ -288,17 +450,31 @@ const App = () => {
     if (!user) return null;
 
     const blogList = user.blogs.map((blog) => (
-      <li key={blog.id}>
-        <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
-      </li>
+      <ListItem key={blog.id}>
+        <ListItemIcon>
+          <NoteIcon />
+        </ListItemIcon>
+        <ListItemText>
+          <Typography component={Link} to={`/blogs/${blog.id}`}>
+            {blog.title}
+          </Typography>
+        </ListItemText>
+      </ListItem>
     ));
 
     return (
-      <div>
-        <h2>{user.name}</h2>
-        <h3>added blogs</h3>
-        <ul>{blogList}</ul>
-      </div>
+      <Box
+        style={{
+          backgroundColor: "white",
+          padding: 20
+        }}
+      >
+        <Typography gutterBottom variant="h5" component="h2">
+          {user.name}
+        </Typography>
+        <Typography variant="subtitle1">added blogs</Typography>
+        <List dense>{blogList}</List>
+      </Box>
     );
   };
 
@@ -308,24 +484,34 @@ const App = () => {
   return (
     <div>
       {user && NavBar()}
-
-      <AlertBox />
-      <Routes>
-        <Route path="/" element={user ? <Home /> : <LoginForm />} />
-        <Route path="/users" element={user ? <Users /> : <LoginForm />} />
-        <Route
-          path="/users/:id"
-          element={
-            <UserSingleView id={matchUsers ? matchUsers.params.id : null} />
-          }
-        />
-        <Route
-          path="/blogs/:id"
-          element={
-            <BlogSingleView id={matchBlogs ? matchBlogs.params.id : null} />
-          }
-        />
-      </Routes>
+      <Box
+        component="main"
+        style={{
+          backgroundColor: "#DDD",
+          flexGrow: 1,
+          height: "100vh",
+          overflow: "auto",
+          padding: 20
+        }}
+      >
+        <AlertBox />
+        <Routes>
+          <Route path="/" element={user ? <Home /> : <LoginForm />} />
+          <Route path="/users" element={user ? <Users /> : <LoginForm />} />
+          <Route
+            path="/users/:id"
+            element={
+              <UserSingleView id={matchUsers ? matchUsers.params.id : null} />
+            }
+          />
+          <Route
+            path="/blogs/:id"
+            element={
+              <BlogSingleView id={matchBlogs ? matchBlogs.params.id : null} />
+            }
+          />
+        </Routes>
+      </Box>
     </div>
   );
 };
